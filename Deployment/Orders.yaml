@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+  namespace: store-apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-api
+  template:
+    metadata:
+      labels:
+        app: orders-api
+    spec:
+      containers:
+      - name: orders-api
+        image: store-orders-api:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        # Вмикаємо режим розробки для Swagger
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "Development"
+        # Замість localhost:5291 вказуємо назву K8s сервісу
+        - name: StockApiUrl
+          value: "http://stock-api-service"
+        # ----------------------------------------------------
+
+        # Налаштування підключення до бази даних із секретів
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: store-secrets
+              key: orders-conn-string
